@@ -1,0 +1,2 @@
+# MCPlanz
+Pruebas gestionar MCP
