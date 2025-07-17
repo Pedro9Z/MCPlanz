@@ -1,0 +1,45 @@
+dependencies:
+  git: '>=2.0.0'
+  node: '>=16.0.0'
+  npm: '>=8.0.0'
+description: Flujo de desarrollo web nativo para proyectos React/Vue/Angular
+env_vars:
+  NODE_ENV: development
+  PORT: '3000'
+healthcheck:
+  interval: 30s
+  retries: 3
+  timeout: 10s
+logs:
+  file: webdev-native.log
+  level: info
+  rotation: daily
+mode: native
+name: WebDev-Native
+steps:
+- command: node --version
+  expected_output: v
+  name: verificar_node
+  platform:
+    linux: node --version
+    macos: node --version
+    windows: node --version
+  timeout: 5
+- command: npm install
+  name: instalar_dependencias
+  timeout: 300
+  working_directory: $PROJECT_DIR
+- background: true
+  command: npm run dev
+  log_file: dev-server.log
+  name: lanzar_dev_server
+  port: 3000
+  working_directory: $PROJECT_DIR
+- command: http://localhost:3000
+  delay: 3
+  name: abrir_navegador
+  platform:
+    linux: xdg-open http://localhost:3000
+    macos: open http://localhost:3000
+    windows: start http://localhost:3000
+version: 1.0.0

@@ -1,0 +1,56 @@
+dependencies:
+  docker: '>=20.0.0'
+  docker-compose: '>=1.29.0'
+description: Flujo de desarrollo web containerizado con Docker
+healthcheck:
+  interval: 30s
+  retries: 3
+  test: curl -f http://localhost:3000 || exit 1
+  timeout: 10s
+logs:
+  file: webdev-container.log
+  level: info
+  rotation: daily
+mode: container
+name: WebDev-Container
+security:
+  capabilities:
+    add:
+    - CHOWN
+    - SETGID
+    - SETUID
+    drop:
+    - ALL
+  read_only: false
+  user: node
+steps:
+- command: docker --version
+  expected_output: Docker version
+  name: verificar_docker
+  timeout: 5
+- build_args:
+    NODE_ENV: development
+  dockerfile: "\nFROM node:18-alpine\n\nWORKDIR /app\n\nCOPY package*.json ./\nRUN\
+    \ npm ci --only=production\n\nCOPY . .\n\nEXPOSE 3000\n\nCMD [\"npm\", \"run\"\
+    , \"dev\"]\n            "
+  image: node:18-alpine
+  name: construir_imagen
+  timeout: 600
+- environment:
+    CHOKIDAR_USEPOLLING: 'true'
+    NODE_ENV: development
+  image: webdev-app:latest
+  name: ejecutar_contenedor
+  ports:
+  - 3000:3000
+  restart: unless-stopped
+  volumes:
+  - $PROJECT_DIR:/app
+- command: http://localhost:3000
+  delay: 5
+  name: abrir_navegador
+  platform:
+    linux: xdg-open http://localhost:3000
+    macos: open http://localhost:3000
+    windows: start http://localhost:3000
+version: 1.0.0

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lanzador de Aplicaciones Cross-Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header__brand">
+                <h1>🚀 Lanzador Cross-Platform</h1>
+                <p>Automatización de flujos en Native y Container Mode</p>
+            </div>
+            <div class="header__actions">
+                <button id="theme-toggle" class="btn btn--outline btn--sm">🌙 Tema</button>
+                <button id="refresh-system" class="btn btn--secondary btn--sm">🔄 Actualizar Sistema</button>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Panel de Información del Sistema -->
+            <section class="system-info">
+                <div class="card">
+                    <div class="card__header">
+                        <h2>📋 Información del Sistema</h2>
+                    </div>
+                    <div class="card__body">
+                        <div class="system-grid">
+                            <div class="system-item">
+                                <span class="system-label">Sistema Operativo:</span>
+                                <span id="os-info" class="system-value">Detectando...</span>
+                            </div>
+                            <div class="system-item">
+                                <span class="system-label">Docker:</span>
+                                <span id="docker-status" class="system-value">Verificando...</span>
+                            </div>
+                            <div class="system-item">
+                                <span class="system-label">Podman:</span>
+                                <span id="podman-status" class="system-value">Verificando...</span>
+                            </div>
+                            <div class="system-item">
+                                <span class="system-label">Node.js:</span>
+                                <span id="node-status" class="system-value">Verificando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel de Flujos -->
+            <section class="flows-section">
+                <div class="flows-header">
+                    <h2>⚡ Flujos Disponibles</h2>
+                    <button id="create-flow-btn" class="btn btn--primary">➕ Crear Flujo</button>
+                </div>
+                
+                <div class="flows-grid" id="flows-grid">
+                    <!-- Los flujos se cargarán dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Editor Visual -->
+            <section class="editor-section" id="editor-section" style="display: none;">
+                <div class="card">
+                    <div class="card__header">
+                        <h2>🎨 Editor Visual de Flujos</h2>
+                        <div class="editor-actions">
+                            <button id="save-flow" class="btn btn--primary btn--sm">💾 Guardar</button>
+                            <button id="test-flow" class="btn btn--secondary btn--sm">🧪 Probar</button>
+                            <button id="close-editor" class="btn btn--outline btn--sm">✕ Cerrar</button>
+                        </div>
+                    </div>
+                    <div class="card__body">
+                        <div class="editor-container">
+                            <div class="editor-sidebar">
+                                <h3>Componentes</h3>
+                                <div class="components-palette">
+                                    <div class="component-item" data-type="command" draggable="true">
+                                        <span class="component-icon">💻</span>
+                                        <span>Comando</span>
+                                    </div>
+                                    <div class="component-item" data-type="container" draggable="true">
+                                        <span class="component-icon">🐳</span>
+                                        <span>Contenedor</span>
+                                    </div>
+                                    <div class="component-item" data-type="healthcheck" draggable="true">
+                                        <span class="component-icon">🔍</span>
+                                        <span>Healthcheck</span>
+                                    </div>
+                                    <div class="component-item" data-type="delay" draggable="true">
+                                        <span class="component-icon">⏱️</span>
+                                        <span>Delay</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="editor-canvas" id="editor-canvas">
+                                <div class="canvas-drop-zone">
+                                    <p>Arrastra componentes aquí para crear tu flujo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel de Ejecución -->
+            <section class="execution-section" id="execution-section" style="display: none;">
+                <div class="card">
+                    <div class="card__header">
+                        <h2>🚀 Ejecución de Flujo</h2>
+                        <div class="execution-actions">
+                            <button id="stop-execution" class="btn btn--outline btn--sm">⏹️ Detener</button>
+                            <button id="close-execution" class="btn btn--outline btn--sm">✕ Cerrar</button>
+                        </div>
+                    </div>
+                    <div class="card__body">
+                        <div class="execution-container">
+                            <div class="execution-status">
+                                <h3>Estado del Flujo</h3>
+                                <div class="status-grid" id="status-grid">
+                                    <!-- Los pasos se mostrarán aquí -->
+                                </div>
+                            </div>
+                            <div class="execution-logs">
+                                <h3>Logs en Tiempo Real</h3>
+                                <div class="logs-container" id="logs-container">
+                                    <!-- Los logs aparecerán aquí -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal para Configuración de Flujo -->
+        <div class="modal" id="flow-config-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⚙️ Configuración de Flujo</h3>
+                    <button class="modal-close" id="close-flow-config">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form id="flow-config-form">
+                        <div class="form-group">
+                            <label class="form-label">Nombre del Flujo</label>
+                            <input type="text" class="form-control" id="flow-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" id="flow-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Modo de Ejecución</label>
+                            <select class="form-control" id="flow-mode">
+                                <option value="native">Native Mode</option>
+                                <option value="container">Container Mode</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Variables de Entorno</label>
+                            <div class="env-vars-container" id="env-vars-container">
+                                <div class="env-var-item">
+                                    <input type="text" class="form-control" placeholder="Variable" style="width: 45%;">
+                                    <input type="text" class="form-control" placeholder="Valor" style="width: 45%;">
+                                    <button type="button" class="btn btn--outline btn--sm">🗑️</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-env-var" class="btn btn--secondary btn--sm">➕ Agregar Variable</button>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary">💾 Guardar Configuración</button>
+                            <button type="button" id="cancel-flow-config" class="btn btn--outline">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Detalles de Componente -->
+        <div class="modal" id="component-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🔧 Configurar Componente</h3>
+                    <button class="modal-close" id="close-component-modal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form id="component-form">
+                        <div class="form-group">
+                            <label class="form-label">Nombre del Paso</label>
+                            <input type="text" class="form-control" id="component-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Comando/Acción</label>
+                            <input type="text" class="form-control" id="component-command" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Timeout (segundos)</label>
+                            <input type="number" class="form-control" id="component-timeout" value="30">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary">💾 Guardar Componente</button>
+                            <button type="button" id="cancel-component" class="btn btn--outline">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay para modales -->
+        <div class="modal-overlay" id="modal-overlay"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

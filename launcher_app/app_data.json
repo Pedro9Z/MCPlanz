@@ -1,0 +1,245 @@
+{
+  "flows": [
+    {
+      "name": "WebDev-Native",
+      "version": "1.0.0",
+      "description": "Flujo de desarrollo web nativo para proyectos React/Vue/Angular",
+      "mode": "native",
+      "dependencies": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0",
+        "git": ">=2.0.0"
+      },
+      "healthcheck": {
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      },
+      "steps": [
+        {
+          "name": "verificar_node",
+          "command": "node --version",
+          "platform": {
+            "windows": "node --version",
+            "linux": "node --version",
+            "macos": "node --version"
+          },
+          "expected_output": "v",
+          "timeout": 5
+        },
+        {
+          "name": "instalar_dependencias",
+          "command": "npm install",
+          "working_directory": "$PROJECT_DIR",
+          "timeout": 300
+        },
+        {
+          "name": "lanzar_dev_server",
+          "command": "npm run dev",
+          "working_directory": "$PROJECT_DIR",
+          "background": true,
+          "port": 3000,
+          "log_file": "dev-server.log"
+        },
+        {
+          "name": "abrir_navegador",
+          "command": "http://localhost:3000",
+          "platform": {
+            "windows": "start http://localhost:3000",
+            "linux": "xdg-open http://localhost:3000",
+            "macos": "open http://localhost:3000"
+          },
+          "delay": 3
+        }
+      ],
+      "env_vars": {
+        "NODE_ENV": "development",
+        "PORT": "3000"
+      },
+      "logs": {
+        "level": "info",
+        "file": "webdev-native.log",
+        "rotation": "daily"
+      }
+    },
+    {
+      "name": "WebDev-Container",
+      "version": "1.0.0",
+      "description": "Flujo de desarrollo web containerizado con Docker",
+      "mode": "container",
+      "dependencies": {
+        "docker": ">=20.0.0",
+        "docker-compose": ">=1.29.0"
+      },
+      "healthcheck": {
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3,
+        "test": "curl -f http://localhost:3000 || exit 1"
+      },
+      "steps": [
+        {
+          "name": "verificar_docker",
+          "command": "docker --version",
+          "expected_output": "Docker version",
+          "timeout": 5
+        },
+        {
+          "name": "construir_imagen",
+          "image": "node:18-alpine",
+          "dockerfile": "\nFROM node:18-alpine\n\nWORKDIR /app\n\nCOPY package*.json ./\nRUN npm ci --only=production\n\nCOPY . .\n\nEXPOSE 3000\n\nCMD [\"npm\", \"run\", \"dev\"]\n            ",
+          "build_args": {
+            "NODE_ENV": "development"
+          },
+          "timeout": 600
+        },
+        {
+          "name": "ejecutar_contenedor",
+          "image": "webdev-app:latest",
+          "ports": [
+            "3000:3000"
+          ],
+          "volumes": [
+            "$PROJECT_DIR:/app"
+          ],
+          "environment": {
+            "NODE_ENV": "development",
+            "CHOKIDAR_USEPOLLING": "true"
+          },
+          "restart": "unless-stopped"
+        },
+        {
+          "name": "abrir_navegador",
+          "command": "http://localhost:3000",
+          "platform": {
+            "windows": "start http://localhost:3000",
+            "linux": "xdg-open http://localhost:3000",
+            "macos": "open http://localhost:3000"
+          },
+          "delay": 5
+        }
+      ],
+      "security": {
+        "user": "node",
+        "read_only": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [
+            "CHOWN",
+            "SETGID",
+            "SETUID"
+          ]
+        }
+      },
+      "logs": {
+        "level": "info",
+        "file": "webdev-container.log",
+        "rotation": "daily"
+      }
+    },
+    {
+      "name": "Suite-Creativa",
+      "version": "1.0.0",
+      "description": "Flujo automatizado para herramientas creativas Adobe y alternativas",
+      "mode": "native",
+      "dependencies": {
+        "python": ">=3.8.0",
+        "ffmpeg": ">=4.0.0"
+      },
+      "healthcheck": {
+        "interval": "60s",
+        "timeout": "15s",
+        "retries": 2
+      },
+      "steps": [
+        {
+          "name": "verificar_herramientas",
+          "command": "python --version && ffmpeg -version",
+          "timeout": 10
+        },
+        {
+          "name": "abrir_photoshop",
+          "command": "photoshop",
+          "platform": {
+            "windows": "start \"\" \"C:\\Program Files\\Adobe\\Adobe Photoshop 2024\\Photoshop.exe\"",
+            "linux": "gimp",
+            "macos": "open -a \"Adobe Photoshop 2024\""
+          },
+          "alternative": {
+            "windows": "start \"\" \"C:\\Program Files\\GIMP 2\\bin\\gimp-2.10.exe\"",
+            "linux": "gimp",
+            "macos": "open -a GIMP"
+          },
+          "background": true
+        },
+        {
+          "name": "abrir_illustrator",
+          "command": "illustrator",
+          "platform": {
+            "windows": "start \"\" \"C:\\Program Files\\Adobe\\Adobe Illustrator 2024\\Illustrator.exe\"",
+            "linux": "inkscape",
+            "macos": "open -a \"Adobe Illustrator 2024\""
+          },
+          "alternative": {
+            "windows": "start \"\" \"C:\\Program Files\\Inkscape\\inkscape.exe\"",
+            "linux": "inkscape",
+            "macos": "open -a Inkscape"
+          },
+          "background": true
+        },
+        {
+          "name": "configurar_directorio_trabajo",
+          "command": "mkdir -p $WORK_DIR/assets && mkdir -p $WORK_DIR/exports",
+          "platform": {
+            "windows": "mkdir \"%WORK_DIR%\\assets\" && mkdir \"%WORK_DIR%\\exports\"",
+            "linux": "mkdir -p $WORK_DIR/assets && mkdir -p $WORK_DIR/exports",
+            "macos": "mkdir -p $WORK_DIR/assets && mkdir -p $WORK_DIR/exports"
+          }
+        },
+        {
+          "name": "script_automatizacion",
+          "command": "python automation_script.py",
+          "working_directory": "$WORK_DIR",
+          "script_content": "\nimport os\nimport subprocess\nimport time\nfrom pathlib import Path\n\ndef process_images():\n    assets_dir = Path(\"assets\")\n    exports_dir = Path(\"exports\")\n\n    for img_file in assets_dir.glob(\"*.{jpg,png,psd}\"):\n        print(f\"Procesando: {img_file}\")\n\n        # Conversión automática usando ffmpeg\n        output_file = exports_dir / f\"{img_file.stem}_processed.png\"\n        subprocess.run([\n            \"ffmpeg\", \"-i\", str(img_file),\n            \"-vf\", \"scale=1920:1080\",\n            str(output_file)\n        ])\n\n        time.sleep(1)\n\nif __name__ == \"__main__\":\n    process_images()\n            ",
+          "timeout": 300
+        }
+      ],
+      "env_vars": {
+        "WORK_DIR": "$HOME/CreativeWork",
+        "PYTHONPATH": "$WORK_DIR/scripts"
+      },
+      "logs": {
+        "level": "info",
+        "file": "suite-creativa.log",
+        "rotation": "daily"
+      }
+    }
+  ],
+  "system_info": {
+    "os_detection": {
+      "windows": "process.platform === 'win32'",
+      "linux": "process.platform === 'linux'",
+      "macos": "process.platform === 'darwin'"
+    },
+    "container_engines": {
+      "docker": "docker --version",
+      "podman": "podman --version"
+    }
+  },
+  "security": {
+    "secrets_management": {
+      "env_file": ".env",
+      "vault_integration": false,
+      "encryption": "AES-256"
+    },
+    "container_security": {
+      "no_privileged": true,
+      "read_only_root": true,
+      "drop_capabilities": [
+        "ALL"
+      ]
+    }
+  }
+}

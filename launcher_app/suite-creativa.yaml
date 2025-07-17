@@ -1,0 +1,63 @@
+dependencies:
+  ffmpeg: '>=4.0.0'
+  python: '>=3.8.0'
+description: Flujo automatizado para herramientas creativas Adobe y alternativas
+env_vars:
+  PYTHONPATH: $WORK_DIR/scripts
+  WORK_DIR: $HOME/CreativeWork
+healthcheck:
+  interval: 60s
+  retries: 2
+  timeout: 15s
+logs:
+  file: suite-creativa.log
+  level: info
+  rotation: daily
+mode: native
+name: Suite-Creativa
+steps:
+- command: python --version && ffmpeg -version
+  name: verificar_herramientas
+  timeout: 10
+- alternative:
+    linux: gimp
+    macos: open -a GIMP
+    windows: start "" "C:\Program Files\GIMP 2\bin\gimp-2.10.exe"
+  background: true
+  command: photoshop
+  name: abrir_photoshop
+  platform:
+    linux: gimp
+    macos: open -a "Adobe Photoshop 2024"
+    windows: start "" "C:\Program Files\Adobe\Adobe Photoshop 2024\Photoshop.exe"
+- alternative:
+    linux: inkscape
+    macos: open -a Inkscape
+    windows: start "" "C:\Program Files\Inkscape\inkscape.exe"
+  background: true
+  command: illustrator
+  name: abrir_illustrator
+  platform:
+    linux: inkscape
+    macos: open -a "Adobe Illustrator 2024"
+    windows: start "" "C:\Program Files\Adobe\Adobe Illustrator 2024\Illustrator.exe"
+- command: mkdir -p $WORK_DIR/assets && mkdir -p $WORK_DIR/exports
+  name: configurar_directorio_trabajo
+  platform:
+    linux: mkdir -p $WORK_DIR/assets && mkdir -p $WORK_DIR/exports
+    macos: mkdir -p $WORK_DIR/assets && mkdir -p $WORK_DIR/exports
+    windows: mkdir "%WORK_DIR%\assets" && mkdir "%WORK_DIR%\exports"
+- command: python automation_script.py
+  name: script_automatizacion
+  script_content: "\nimport os\nimport subprocess\nimport time\nfrom pathlib import\
+    \ Path\n\ndef process_images():\n    assets_dir = Path(\"assets\")\n    exports_dir\
+    \ = Path(\"exports\")\n\n    for img_file in assets_dir.glob(\"*.{jpg,png,psd}\"\
+    ):\n        print(f\"Procesando: {img_file}\")\n\n        # Conversión automática\
+    \ usando ffmpeg\n        output_file = exports_dir / f\"{img_file.stem}_processed.png\"\
+    \n        subprocess.run([\n            \"ffmpeg\", \"-i\", str(img_file),\n \
+    \           \"-vf\", \"scale=1920:1080\",\n            str(output_file)\n    \
+    \    ])\n\n        time.sleep(1)\n\nif __name__ == \"__main__\":\n    process_images()\n\
+    \            "
+  timeout: 300
+  working_directory: $WORK_DIR
+version: 1.0.0
