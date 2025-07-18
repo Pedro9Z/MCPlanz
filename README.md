@@ -32,3 +32,17 @@ El directorio `launcher_app` contiene tres flujos de demostración:
 
 ![Demostración](launcher_app/demo.gif)
 
+
+## Uso rápido con Python
+
+Para ejecutar un flujo sin usar la interfaz web puedes emplear el script `launcher.py`.
+Instala PyYAML si es necesario y ejecuta el flujo deseado:
+
+```bash
+cd launcher_app
+python3 launcher.py webdev-native.yaml
+```
+
+El script detecta el sistema operativo, verifica dependencias básicas y ejecuta los pasos
+en orden. Los logs se guardan en el archivo indicado por cada YAML.
+
